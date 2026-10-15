@@ -1,3 +1,8 @@
 .env
-*.docx
+.venv/
 __pycache__/
+*.pyc
+*.docx
+qdrant_db/
+qdrant_chunks/
+.token_usage.json
