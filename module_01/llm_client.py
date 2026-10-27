@@ -35,7 +35,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 # TODO 1: впиши свой вопрос на русском языке.
 # Возьми рабочий вопрос, а не "привет". Например:
 #   "Перечисли 3 причины остановки конвейера и что проверить в каждом случае."
-MY_QUESTION = "что такое абсолютный ноль?"
+MY_QUESTION = "Объясни простыми словами, что такое искусственный интеллект."
 
 # TODO 2: температура — насколько свободно отвечает модель.
 #   0.0 = строго и предсказуемо (один и тот же ответ на один и тот же вопрос)
@@ -140,10 +140,16 @@ def ask_llm(question: str) -> tuple:
     """
     start = time.time()
 
-    # --- заменить этот блок на try/except (см. пункты 1-3 выше) ---
-    result = call_gigachat(question)
-    provider = "GigaChat"
-    # --- конец блока ---
+     # --- блок try/except ---
+
+    try:
+        result = call_gigachat(question)
+        provider = "GigaChat"
+    except Exception as e:
+        print(f"Предупреждение: GigaChat недоступен ({e}).")
+        print("Переключаемся на резервный провайдер HuggingFace...")
+        result = call_huggingface(question)
+        provider = "HuggingFace"
 
     latency = time.time() - start
     return result, provider, latency
