@@ -86,34 +86,35 @@ NAMESPACE = uuid.UUID("6f8a9c2e-3d51-4b7a-9f10-2c4d6e8b0a13")
 # и нахлёст. Начни с этих значений, поменяешь их позже — когда увидишь,
 # сколько вопросов находится.
 CHUNK_SIZE = 600
-OVERLAP = 150
+OVERLAP = 0
 
 
 # ====================================================================
 #  НАРЕЗКА НА ЧАНКИ
 # ====================================================================
 
+
 def chunk_text(text: str, size: int, overlap: int) -> list:
-    """Режет текст на куски по `size` символов с нахлёстом `overlap`.
+    """Режет текст на куски по size символов с нахлёстом overlap."""
+    if size <= 0:
+        raise ValueError("size должен быть больше 0")
+    if overlap < 0:
+        raise ValueError("overlap не может быть отрицательным")
+    if overlap >= size:
+        raise ValueError("overlap должен быть меньше size")
 
-    TODO 1: сейчас функция возвращает весь текст одним куском — это заглушка.
-    С ней индекс соберётся и поиск заработает, только искать будет по целым
-    записям. Насколько это плохо, увидишь в практике 2: там есть замер.
+    chunks = []
+    step = size - overlap
+    start = 0
 
-    Что сделать:
-      1. Если overlap >= size — поднять ValueError с понятным сообщением:
-         шаг окна получится нулевым, и цикл никогда не кончится.
-      2. Шаг окна: step = size - overlap.
-      3. Идти по тексту от start = 0, пока start < len(text):
-         кусок = text[start:start + size];
-         если в куске есть непробельные символы — добавить его в список;
-         сдвинуть start на step.
-      4. Вернуть список кусков.
+    while start < len(text):
+        chunk = text[start:start + size]
+        if chunk.strip():
+            chunks.append(chunk)
+        start += step
 
-    Проверить себя: chunk_text('абвгд'*100, 200, 50) -> 4 куска
-    длиной 200, 200, 200 и 50 символов.
-    """
-    return [text]
+    return chunks
+
 
 
 # ====================================================================
@@ -206,7 +207,7 @@ def build_index(client: QdrantClient, model: SentenceTransformer) -> tuple:
     client.create_collection(
         collection_name=collection,
         vectors_config=VectorParams(
-            size=model.get_embedding_dimension(),
+            size=model.get_sentence_embedding_dimension(),
             distance=Distance.COSINE,
         ),
     )
@@ -233,7 +234,7 @@ def build_index(client: QdrantClient, model: SentenceTransformer) -> tuple:
         "collection": collection,
         "built_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "model": MODEL_NAME,
-        "vector_size": model.get_embedding_dimension(),
+        "vector_size": model.get_sentence_embedding_dimension(),
         "chunk_size": CHUNK_SIZE,
         "overlap": OVERLAP,
         "documents": len({r["doc_id"] for r in records}),
