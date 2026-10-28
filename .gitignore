@@ -6,3 +6,9 @@ __pycache__/
 qdrant_db/
 qdrant_chunks/
 .token_usage.json
+
+# macOS
+.DS_Store
+
+# Downloaded external PDF
+module_03/data/sources/ext_gost32601.pdf
